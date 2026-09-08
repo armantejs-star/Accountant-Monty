@@ -1885,21 +1885,27 @@ document.getElementById('budget-expense-display').innerText = `$${totalSyncCost.
         updateOnlineStatus();
 
 /* --- STEP 45: CACHE BUSTER (FORCE UPDATE) --- */
-        function forceUpdateApp() {
-            if ('caches' in window) {
-                caches.keys().then(names => {
-                    names.forEach(name => {
-                        caches.delete(name);
-                    });
-                }).then(() => {
-                    alert("App cache cleared! Monty will now download the latest version.");
-                    window.location.reload(true);
-                });
-            } else {
-                // Fallback for older browsers
-                window.location.reload(true);
+function forceUpdateApp() {
+    // 1. Delete the file cache
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+        });
+    }
+    // 2. Unregister the Service Worker holding the old code
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
             }
-        }    
+        }).then(() => {
+            alert("App cache cleared! Monty will now download the latest version.");
+            window.location.reload(true);
+        });
+    } else {
+        window.location.reload(true);
+    }
+}
         /* --- STEP 47: FACTORY RESET (LAUNCH PREP) --- */
         function factoryReset() {
             showConfirm("⚠️ COMPLETE DATA WIPE", "Are you absolutely sure? This will permanently delete all accounts, transactions, and settings. You cannot undo this.", () => {

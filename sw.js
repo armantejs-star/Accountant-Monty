@@ -12,6 +12,7 @@ const urlsToCache = [
 
 // 1. Install Phase: Download all files into the offline vault
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -37,6 +38,7 @@ self.addEventListener('fetch', event => {
 
 // 3. Activate Phase: Clean up old versions of the cache when we update the app
 self.addEventListener('activate', event => {
+  event.waitUntil(clients.claim());
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
