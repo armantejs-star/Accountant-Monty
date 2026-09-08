@@ -1,5 +1,5 @@
 /* --- STEP 41: ACCOUNTANT MONTY SERVICE WORKER --- */
-const CACHE_NAME = 'monty-cache-v1';
+const CACHE_NAME = 'monty-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
