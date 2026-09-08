@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>Accountant Monty</title>
+    <!-- PWA Manifest & iOS Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Monty">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- Chart.js for Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tesseract.js for OCR Receipt Scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
+    <!-- THIS CONNECTS YOUR CSS FILE! -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- PASTE ALL YOUR BUTTONS, MENUS, AND TABS HERE -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title" style="margin-top:0; color:var(--accent);">Confirm</h3>
+            <p id="modal-text">Are you sure?</p>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.5rem;">
+                <button class="btn" style="width:auto;" onclick="closeModal()">Cancel</button>
+                <button class="btn danger" style="width:auto;" id="modal-confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+<header>
+        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+            <h1>Accountant Monty</h1>
+            <div style="display: flex; gap: 0.5rem; align-items: center; min-height: 20px;">
+                <span id="save-indicator" style="font-size: 0.8rem; color: var(--success); font-weight: bold; opacity: 0; transition: opacity 0.3s;">💾 Saved</span>
+                <span id="backup-warning" style="font-size: 0.8rem; color: var(--danger); font-weight: bold; display: none; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--danger);">⚠️ Hard Backup Required</span>
+                
+                <!-- NEW INSTALL BUTTON -->
+                <button id="install-btn" class="btn accent" style="display: none; padding: 2px 8px; width: auto; font-size: 0.8rem;">📱 Install App</button>
+            </div>
+        </div>
+        <div class="avatar-circle" title="Accountant Monty">👳🏽‍♂️🧮</div>
+    </header>
+
+<!-- OFFLINE BANNER -->
+    <div id="offline-banner" style="display: none; background: var(--warning); color: #000; text-align: center; padding: 0.5rem; font-weight: bold; font-size: 0.9rem;">
+        ✈️ You are offline. Monty is running securely from local cache.
+    </div>
+
+    <nav aria-label="Main Navigation">
+        <button class="tab-link active" onclick="openTab('dashboard')">Dashboard</button>
+        <button class="tab-link" onclick="openTab('budget')">Budget & Envelopes 📊</button>
+        <button class="tab-link" onclick="openTab('forecast')">Cash Forecast 🔮</button>
+        <button class="tab-link" onclick="openTab('transactions')">Ledger</button>
+        <button class="tab-link" onclick="openTab('planner')">Day Planner 📅</button>
+        <button class="tab-link" onclick="openTab('insights')">Insights</button>
+        <button class="tab-link" onclick="openTab('stocks')">Stocks 📈</button>
+        <button class="tab-link" onclick="openTab('investments')">Investments 🏦</button>
+        <button class="tab-link" onclick="openTab('debt')">Debt Payoff</button>
+        <button class="tab-link" onclick="openTab('goals')">Sinking Funds</button>
+        <button class="tab-link" onclick="openTab('groceries')">Groceries / OCR</button>
+        <button class="tab-link" onclick="openTab('settings')">Settings</button>
+    </nav>
+
+    <main>
+        <!-- 1. DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="summary-cards">
+                <div class="card success"><h3>Liquid Savings (Bank)</h3><p id="dash-assets">$0.00</p></div>
+                <div class="card warning"><h3>Global Investments</h3><p id="dash-investments">$0.00</p></div>
+                <div class="card danger"><h3>Total Debt</h3><p id="dash-debt-display">$0.00</p></div>
+                <div class="card accent"><h3>Total Net Worth</h3><p id="dash-networth">$0.00</p></div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">My Bank Accounts</h2>
+                    </div>
+                    <div class="form-group" style="padding: 0; background: transparent; border: none;">
+                        <input type="text" id="acc-name" placeholder="E.g., Checking">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="acc-start" placeholder="Start Bal ($)" style="max-width: 120px;">
+                        <button id="acc-submit-btn" class="btn success" onclick="addAccount()" style="max-width: 80px;">Add</button>
+                        <button id="acc-cancel-btn" class="btn danger" onclick="cancelAccEdit()" style="max-width: 40px; display:none;">X</button>
+                    </div>
+                    <div class="table-responsive" style="margin-bottom: 1.5rem;">
+                        <table>
+                            <thead><tr><th>Account</th><th>Active Balance</th><th>Action</th></tr></thead>
+                            <tbody id="accounts-body"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- TRANSFER FEATURE -->
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <h3 style="margin-top:0; font-size:1.1rem; color:var(--text-muted);">Transfer Funds</h3>
+                        <div class="form-group" style="padding: 0; background: transparent; border: none; align-items: stretch;">
+                            <select id="transfer-from" class="acc-dropdown"></select>
+                            <span style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">➡️</span>
+                            <select id="transfer-to" class="acc-dropdown"></select>
+                            <input type="number" inputmode="decimal" inputmode="decimal" id="transfer-amount" placeholder="Amount ($)" style="min-width: 100px;">
+                            <button class="btn accent" onclick="transferFunds()" style="min-width: 80px;">Move</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2 style="margin-top:0;">Expense Summary (Filtered)</h2>
+                    <div class="chart-container"><canvas id="dashChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- UPCOMING PAYMENTS DASHBOARD -->
+            <div class="panel" style="margin-top: 1.5rem;">
+                <h2 style="margin-top:0; color:var(--accent);">Upcoming Payments (Next 10)</h2>
+                <p style="color:var(--text-muted); margin-top:-10px;">Automatically hides bills once you log a payment against them for the current cycle.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Amount Due</th>
+                                <th>Amount Collected</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="upcoming-payments-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. BUDGET PLANNER -->
+        <div id="budget" class="tab-content">
+            <div class="summary-cards" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+                <div class="card success"><h3 id="card-income-title">Cycle Pay</h3><p id="budget-income-display">$0.00</p></div>
+                <div class="card warning"><h3>Target Costs</h3><p id="budget-expense-display">$0.00</p></div>
+                <div class="card danger"><h3>Cash Outflow (14d)</h3><p id="budget-actual-display">$0.00</p></div>
+                <div class="card accent"><h3>Left for Savings</h3><p id="budget-remaining-display">$0.00</p></div>
+                <div class="card" id="variance-card"><h3>Cycle Variance</h3><p id="budget-variance-display">$0.00</p></div>
+            </div>
+
+            <div class="panel" id="auto-sweeper-panel" style="border-left: 4px solid var(--accent); background: linear-gradient(to right, rgba(139,92,246,0.05), var(--panel-bg)); display:none;">
+                <h2 style="margin-top:0; color:var(--accent);">🧹 Auto-Sweeper Protocol</h2>
+                <p id="sweeper-advice" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main);">Calculating optimal deployment...</p>
+                <div id="sweeper-bars" style="margin-top: 1rem;"></div>
+            </div>
+
+            <div class="panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <h2 style="margin: 0; color: var(--success);">Income Sources</h2>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="i-category" placeholder="Category (e.g. Salary, Hustle)">
+                    <input type="text" id="i-name" placeholder="Income Source (e.g. Primary Job)">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="i-amount" placeholder="Amount ($)">
+                    <select id="i-freq">
+                        <option value="Weekly">Weekly</option>
+                        <option value="Fortnightly" selected>Fortnightly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half-Yearly">Half-Yearly</option>
+                        <option value="Annually">Annually</option>
+                    </select>
+                    <button class="btn success" id="i-submit-btn" onclick="addIncome()" style="max-width: 100px;">Add</button>
+                    <button class="btn danger" id="i-cancel-btn" onclick="cancelEdit('income')" style="max-width: 80px; display:none;">X</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Source</th><th>Raw Amount</th><th>Frequency</th><th id="th-income-equiv">Target Equivalent</th><th>Action</th></tr></thead>
+                        <tbody id="income-body"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <h2 style="margin: 0; color: var(--danger);">Expected Costs & Envelopes</h2>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="b-category" placeholder="Category (e.g. Groceries)">
+                    <input type="text" id="b-name" placeholder="Expense (e.g. Woolworths)">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="b-amount" placeholder="Original Amount ($)">
+                    <select id="b-freq">
+                        <option value="Weekly">Weekly</option>
+                        <option value="Fortnightly">Fortnightly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half-Yearly">Half-Yearly</option>
+                        <option value="Annually">Annually</option>
+                    </select>
+                    <input type="date" id="b-date" title="Next Due Date (Leave blank if Allowance)">
+                    <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; color:var(--text-muted); min-width: 160px; cursor:pointer;">
+                        <input type="checkbox" id="b-allowance" style="width:auto; cursor:pointer;"> Enable Allowance
+                    </label>
+                    <button class="btn accent" id="b-submit-btn" onclick="addBudgetItem()" style="max-width: 100px;">Add</button>
+                    <button class="btn danger" id="b-cancel-btn" onclick="cancelEdit('budget')" style="max-width: 80px; display:none;">X</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Expense</th><th>Original Amount</th><th>Frequency</th><th>Target Cost</th><th>Next Due Date</th><th>Target Saved / Allowance</th><th>Action</th></tr></thead>
+                        <tbody id="budget-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. PREDICTIVE CASH FLOW FORECAST -->
+        <div id="forecast" class="tab-content">
+            <div class="panel" style="border-top: 4px solid var(--accent);">
+                <h2 style="margin-top:0;">"What-If" Scenario Builder</h2>
+                <p style="color:var(--text-muted); margin-top:-10px;">Toggle hypothetical life events below to see how they alter your 6-month trajectory.</p>
+                <div class="form-group">
+                    <input type="text" id="scen-name" placeholder="E.g., Buy new car, Get raise">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="scen-amount" placeholder="Amount ($)">
+                    <select id="scen-type">
+                        <option value="one_expense">One-Time Expense</option>
+                        <option value="one_income">One-Time Windfall</option>
+                        <option value="on_expense">Ongoing Expense (/fn)</option>
+                        <option value="on_income">Ongoing Income (/fn)</option>
+                    </select>
+                    <input type="date" id="scen-date" title="Event Date">
+                    <button class="btn accent" onclick="addScenario()">Add Scenario</button>
+                </div>
+                <div class="table-responsive" style="margin-bottom: 1.5rem;">
+                    <table>
+                        <thead><tr><th style="width: 40px;">Active</th><th>Scenario</th><th>Impact</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="scenario-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>6-Month Cash Flow Projection</h2>
+                <div class="chart-container" style="height: 420px; width: 100%; margin-top: 1rem;"><canvas id="forecastChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- 4. TRANSACTIONS (LEDGER) -->
+        <div id="transactions" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top:0;">Log Ledger Transaction</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: var(--accent); font-weight: bold;">
+                        <input type="checkbox" id="tx-foreign-toggle" onchange="toggleTxForeign()" style="width:auto;"> ✈️ Enable Travel Mode (Foreign Currency)
+                    </label>
+                </div>
+
+                <div class="form-group" id="tx-form-container">
+                    <input type="date" id="tx-date">
+                    <input type="text" id="tx-desc" placeholder="Merchant/Description" onkeyup="autoCategorize()">
+                    <select id="tx-type"><option value="Expense">Expense</option><option value="Income">Income</option></select>
+                    <select id="tx-account" class="acc-dropdown"></select>
+                    <select id="tx-category" class="cat-dropdown"></select>
+                    
+                    <div id="tx-foreign-fields" style="display:none; width:100%; gap:0.75rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:6px; border:1px dashed var(--accent);">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="tx-foreign-amt" placeholder="Foreign Amount" onkeyup="calcForeign()" style="flex:1;">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="tx-foreign-rate" placeholder="Exchange Rate (e.g. 1.5)" onkeyup="calcForeign()" style="flex:1;">
+                        <span style="font-size:0.9rem; color:var(--text-muted); flex:1;">Base Cost:</span>
+                    </div>
+
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="tx-amount" placeholder="Total Cost ($)">
+                    <button id="tx-submit-btn" class="btn success" onclick="addTransaction()">Log against Account</button>
+                    <button class="btn danger" id="tx-cancel-btn" onclick="cancelTxEdit()" style="max-width: 80px; display:none;">X</button>
+                </div>
+                
+                <h3 style="margin-top: 2rem;">Advanced Reporting & Filters</h3>
+                <div class="form-group">
+                    <input type="text" id="tx-search" placeholder="Search..." onkeyup="render()">
+                    <select id="tx-filter-cat" class="cat-dropdown-filter" onchange="render()"><option value="All">All Categories</option></select>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span style="font-size:0.8rem;">From:</span><input type="date" id="filter-start" onchange="render()">
+                        <span style="font-size:0.8rem;">To:</span><input type="date" id="filter-end" onchange="render()">
+                    </div>
+                    <button class="btn" onclick="clearFilters()" style="max-width:80px;">Clear</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>Action</th></tr></thead>
+                        <tbody id="tx-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+<!-- 5. WEEKLY TIMETABLE & PLANNER -->
+        <div id="planner" class="tab-content">
+            <div style="display:flex; gap:1rem; margin-bottom: 1.5rem;">
+                <button class="btn accent" id="view-live-btn" onclick="togglePlannerView('live')" style="flex:1;">🗓️ Live Week</button>
+                <button class="btn" id="view-default-btn" onclick="togglePlannerView('default')" style="flex:1;">⚙️ Base Template</button>
+            </div>
+
+            <!-- VIEW 1: LIVE WEEK (EXCEPTIONS & APPOINTMENTS) -->
+            <div id="planner-live-view">
+                <div class="panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                        <button class="btn" onclick="changeWeekOffset(-1)" style="width:auto; padding:0.8rem 1.2rem;">◀ Prev</button>
+                        <h2 id="current-week-label" style="margin:0; text-align:center; font-size:1.2rem;">This Week</h2>
+                        <button class="btn" onclick="changeWeekOffset(1)" style="width:auto; padding:0.8rem 1.2rem;">Next ▶</button>
+                    </div>
+                    
+                    <h3 style="margin-top:0; border-top: 1px solid var(--border); padding-top: 1.5rem;">Add One-Off Appointment</h3>
+                    <div class="form-group">
+                        <input type="date" id="apt-date">
+                        <input type="time" id="apt-time">
+                        <input type="text" id="apt-desc" placeholder="E.g., Dentist, Lunch Meeting...">
+                        <button class="btn success" onclick="addAppointment()">Schedule</button>
+                    </div>
+
+                    <div id="live-week-container" style="display:flex; flex-direction:column; gap:1.5rem; margin-top:2rem;">
+                        <!-- The JavaScript Engine will generate the 7 days of the week here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: BASE TEMPLATE (THE DEFAULT ROUTINE) -->
+            <div id="planner-default-view" style="display:none;">
+                <div class="panel">
+                    <h2 style="margin-top:0;">Master Weekly Routine</h2>
+                    <p style="color:var(--text-muted); margin-top:-10px;">Set your standard schedule here. It automatically applies to every week, but you can delete or tweak individual items from the "Live Week" view without ruining this template.</p>
+                    <div class="form-group">
+                        <select id="def-day" style="max-width: 150px;">
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="0">Sunday</option>
+                        </select>
+                        <input type="time" id="def-time" style="max-width: 130px;">
+                        <input type="text" id="def-desc" placeholder="Standard routine (e.g., Gym, Deep Work)">
+                        <button class="btn accent" onclick="addDefaultRoutine()">Add to Master</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Day</th><th>Time</th><th>Routine</th><th>Action</th></tr></thead>
+                            <tbody id="default-routine-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. INSIGHTS -->
+        <div id="insights" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top:0;">Year-in-Review & Analytics</h2>
+                <p style="color:var(--text-muted); margin-top:-10px;">Macro-level trends analyzing your spending habits (Transfers excluded).</p>
+                <div class="dashboard-grid">
+                    <div>
+                        <h3>Spending by Category (All Time)</h3>
+                        <div class="chart-container" style="height: 300px;"><canvas id="insightBarChart"></canvas></div>
+                    </div>
+                    <div>
+                        <h3>Cash Flow Trend (Last 6 Months)</h3>
+                        <div class="chart-container" style="height: 300px;"><canvas id="insightLineChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. STOCKS (New Lot-Based Tracking) -->
+        <div id="stocks" class="tab-content">
+            <div class="summary-cards" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                <div class="card warning"><h3>Total Invested</h3><p id="stock-dash-invested">$0.00</p></div>
+                <div class="card success"><h3>Current Value</h3><p id="stock-dash-value">$0.00</p></div>
+                <div class="card accent"><h3>All-Time Growth</h3><p id="stock-dash-growth" style="font-weight:bold;">$0.00</p></div>
+            </div>
+
+            <div class="panel">
+                <h2 style="margin-top:0;">Portfolio Holdings</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Asset Name</th><th>Holdings & Avg Cost</th><th>Market Price</th><th>Current Value</th><th>Growth</th><th>Action</th></tr></thead>
+                        <tbody id="stocks-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; flex-wrap:wrap; gap:1rem;">
+                    <h2 style="margin:0;">Wealth Projection Simulator</h2>
+                    <select id="inv-proj-years" onchange="renderInvProjectionChart()" style="max-width: 150px;">
+                        <option value="5">5 Years</option>
+                        <option value="10">10 Years</option>
+                        <option value="15">15 Years</option>
+                        <option value="20" selected>20 Years</option>
+                        <option value="25">25 Years</option>
+                        <option value="30">30 Years</option>
+                    </select>
+                </div>
+                
+                <!-- WHAT-IF SIMULATOR SUB-FORM -->
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center; background:var(--bg); padding:0.75rem; border-radius:8px; border:1px solid var(--border);">
+                    <strong style="font-size:0.9rem; color:var(--accent);">🔮 Proj Scenario Mode:</strong>
+                    <label style="display:flex; align-items:center; gap:0.25rem; font-size:0.85rem; cursor:pointer; min-width:150px;">
+                        <input type="checkbox" id="stock-scen-enable" onchange="updateStockScenSettings()" style="width:auto; cursor:pointer;"> Overlay What-If Line
+                    </label>
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="stock-scen-amt" placeholder="Hypothetical Amount ($)" onchange="updateStockScenSettings()" style="max-width:200px; padding:0.4rem; font-size:0.9rem;">
+                    <select id="stock-scen-freq" onchange="updateStockScenSettings()" style="max-width:150px; padding:0.4rem; font-size:0.9rem;">
+                        <option value="Weekly">Weekly</option>
+                        <option value="Fortnightly" selected>Fortnightly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Annually">Annually</option>
+                    </select>
+                </div>
+                
+                <div class="chart-container" style="height: 350px; width: 100%;"><canvas id="invProjectionChart"></canvas></div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <h2 style="margin-top:0;">1. Asset Settings</h2>
+                    <p style="color:var(--text-muted); margin-top:-10px;">Define the asset and update its live market price.</p>
+                    <div class="form-group" style="padding:0; background:transparent; border:none; margin-bottom: 0;">
+                        <input type="text" id="stock-name" placeholder="Ticker / Asset Name (e.g., VOO)">
+                        <select id="stock-type">
+                            <option value="Stocks">Stocks / ETFs</option>
+                            <option value="Crypto">Crypto</option>
+                        </select>
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="stock-price" placeholder="Current Price per Unit ($)">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="stock-return" placeholder="Expected Annual Return (%)" value="7">
+                        <button id="stock-submit-btn" class="btn success" onclick="addStock()">Save Asset</button>
+                        <button id="stock-cancel-btn" class="btn danger" onclick="cancelStockEdit()" style="max-width:40px; display:none;">X</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 style="margin-top:0;">2. Manage Purchases (Lots)</h2>
+                    <p style="color:var(--text-muted); margin-top:-10px;">Select an asset to log or edit the specific units and cost basis.</p>
+                    <div class="form-group" style="padding:0; background:transparent; border:none; margin-bottom: 1rem;">
+                        <select id="stock-buy-asset" onchange="renderStockLots()"></select>
+                        <input type="date" id="stock-buy-date">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="stock-buy-units" placeholder="Units Bought">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="stock-buy-cost" placeholder="Cost per Unit ($)">
+                        <button id="lot-submit-btn" class="btn accent" onclick="addStockLot()">Log Purchase</button>
+                        <button id="lot-cancel-btn" class="btn danger" onclick="cancelLotEdit()" style="max-width:40px; display:none;">X</button>
+                    </div>
+                    <div class="table-responsive" style="background:var(--bg); border-radius:6px; border:1px solid var(--border); margin-top:0;">
+                        <table style="margin:0; background:transparent; font-size:0.85rem;" class="sub-table">
+                            <thead><tr><th>Date</th><th>Units</th><th>Cost/Unit</th><th>Act</th></tr></thead>
+                            <tbody id="stock-lots-body">
+                                <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Select an asset above to view purchases.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7.5 FLAT INVESTMENTS -->
+        <div id="investments" class="tab-content">
+            <div class="summary-cards" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                <div class="card warning"><h3>Total Other Investments</h3><p id="finv-dash-value" style="color:var(--text-main);">$0.00</p></div>
+            </div>
+            
+            <div class="panel">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="margin-top:0;">Other Investments Tracker</h2>
+                </div>
+                <p style="color:var(--text-muted); margin-top:-10px;">Log flat-value updates for real estate, superannuation, and alternative assets.</p>
+                
+                <div class="form-group">
+                    <input type="text" id="finv-name" placeholder="Asset Name (e.g. Primary Residence)">
+                    <select id="finv-type">
+                        <option value="Real Estate">Real Estate</option>
+                        <option value="Retirement">Retirement / Super</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="finv-val" placeholder="Current Est. Value ($)">
+                    <button id="finv-submit-btn" class="btn success" onclick="addFlatInv()">Add Asset</button>
+                    <button id="finv-cancel-btn" class="btn danger" onclick="cancelFlatInvEdit()" style="max-width:40px; display:none;">X</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Asset Name</th><th>Class</th><th>Current Value</th><th>Action</th></tr></thead>
+                        <tbody id="finv-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. DEBT -->
+        <div id="debt" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top:0;">Smart Debt Payoff Planner</h2>
+                <div class="form-group">
+                    <input type="text" id="d-name" placeholder="Loan Name">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="d-bal" placeholder="Balance ($)">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="d-apr" placeholder="APR (%)" style="max-width: 100px;">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="d-min" placeholder="Min Pmt ($)">
+                    <button class="btn danger" onclick="addDebt()">Add Debt</button>
+                </div>
+                <div class="table-responsive" style="margin-bottom: 2rem;">
+                    <table>
+                        <thead><tr><th>Debt Name</th><th>Balance</th><th>APR</th><th>Min Pmt</th><th>Action</th></tr></thead>
+                        <tbody id="debt-body"></tbody>
+                    </table>
+                </div>
+                <div style="background: var(--bg); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+                    <h3 style="margin-top:0;">Payoff Strategy Simulator</h3>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center;">
+                        <label><input type="radio" name="d-strat" value="avalanche" checked onchange="simulateDebt()"> <strong>Avalanche</strong> (High Interest First)</label>
+                        <label><input type="radio" name="d-strat" value="snowball" onchange="simulateDebt()"> <strong>Snowball</strong> (Low Balance First)</label>
+                    </div>
+                    <div>
+                        <label>Extra Monthly Payment: $</label>
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="d-extra" value="0" onchange="simulateDebt()" style="width: 150px; display: inline-block;">
+                    </div>
+                    <h3 id="payoff-result" style="color: var(--success); margin-bottom: 0;"></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. GOALS -->
+        <div id="goals" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top:0;">Goals & Sinking Funds</h2>
+                <p style="color:var(--text-muted); padding:1.5rem;">Set a target amount and visually track your saved cash.</p>
+                <div class="form-group">
+                    <input type="text" id="goal-name" placeholder="E.g., Holiday Fund">
+                    <input type="number" inputmode="decimal" inputmode="decimal" id="goal-target" placeholder="Target ($)">
+                    <button class="btn accent" onclick="addGoal()">Create Sinking Fund</button>
+                </div>
+                <div id="goals-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top:2rem;"></div>
+            </div>
+        </div>
+
+        <!-- 10. GROCERIES -->
+        <div id="groceries" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="margin: 0;">Shopping List</h2>
+                        <h3 id="grocery-total" class="text-danger" style="margin: 0;">$0.00</h3>
+                    </div>
+                    <div class="form-group" style="padding: 0; background: transparent; border: none;">
+                        <select id="g-dropdown-select" style="flex: 2;"></select>
+                        <button class="btn success" onclick="addDropdownItemToList()" style="flex: 1;">Add</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th style="width: 30px;">Got</th><th>Item</th><th>Price</th><th>Action</th></tr></thead>
+                            <tbody id="g-list-body"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn" style="margin-top: 1rem; width:100%;" onclick="clearGotGroceries()">Clear Checked Items</button>
+                </div>
+
+                <div class="panel">
+                    <h2 style="margin-top: 0;">Price Book & OCR Scanner</h2>
+                    <div style="border: 1px dashed var(--accent); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; background: var(--bg);">
+                        <h4 style="margin: 0 0 0.5rem 0;">Scan Receipt (Line-by-Line)</h4>
+                        <input type="file" id="receipt-img" accept="image/*" style="margin-bottom: 0.5rem; font-size: 0.8rem;">
+                        <button class="btn accent" style="padding: 0.5rem;" onclick="processReceiptDetailed()">Extract Items</button>
+                        <div id="ocr-status" style="font-size: 0.8rem;"></div>
+                        <div id="ocr-results" style="margin-top: 1rem; display: none;">
+                            <div class="table-responsive" style="max-height: 200px; font-size: 0.8rem;">
+                                <table>
+                                    <thead><tr><th>Item</th><th>Price</th><th>Add</th></tr></thead>
+                                    <tbody id="ocr-items-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <input type="text" id="g-db-name" placeholder="Item (e.g., Milk)">
+                        <input type="text" id="g-db-market" placeholder="Store (e.g., Coles)">
+                        <input type="number" inputmode="decimal" inputmode="decimal" id="g-db-price" placeholder="Price ($)">
+                        <button class="btn success" onclick="recordCatalogItem()">Log Manual</button>
+                    </div>
+                    <input type="text" id="cat-search" placeholder="Search catalog..." onkeyup="render()" style="margin-bottom: 1rem; width: 100%;">
+                    <div class="table-responsive" style="max-height: 250px;">
+                        <table>
+                            <thead><tr><th>Item & Store</th><th>Latest Price</th><th>History</th><th>Act</th></tr></thead>
+                            <tbody id="g-catalog-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- 11. SETTINGS -->
+        <div id="settings" class="tab-content">
+            <div class="panel">
+                <h2>Preferences & Security</h2>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem;">Data is securely stored entirely on your local device.</p>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom: 2rem;">
+                    <button class="btn" id="theme-toggle-btn" onclick="toggleTheme()" style="flex:1;">Switch Theme</button>
+                    <button class="btn accent" id="privacy-toggle-btn" onclick="togglePrivacy()" style="flex:1;">Hide My Data (Privacy Mode)</button>
+                    
+                    <!-- NEW UPDATE BUTTON -->
+                    <button class="btn danger" onclick="forceUpdateApp()" style="flex:1;">🔄 Force App Update</button>
+                </div>
+                
+                <!-- FUNDING SCHEDULE ENGINE -->
+                <h3 style="margin-top:0;">Funding Schedule (Paycheck Sync)</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top:-10px;">By default, Monty drips your 'Target Saved' amounts smoothly every day. If you want your targets to jump in exact multiples on the exact days you get paid, select your pay cycle.</p>
+                <div class="form-group" style="padding:0; background:transparent; border:none; margin-bottom:0.5rem;">
+                    <select id="settings-sync-freq" onchange="updateSyncSettings()" style="flex:1;">
+                        <option value="Daily">Daily Drip (Continuous)</option>
+                        <option value="Weekly">Weekly Paycheck</option>
+                        <option value="Fortnightly">Fortnightly Paycheck</option>
+                        <option value="Monthly">Monthly Paycheck</option>
+                    </select>
+                    <input type="date" id="settings-sync-anchor" onchange="updateSyncSettings()" title="Anchor Date (e.g., Your exact next Payday)" style="flex:1;">
+                </div>
+                <p id="sync-status" style="font-size: 0.85rem; color: var(--accent); font-weight: bold; margin:0; margin-bottom: 2rem;"></p>
+
+                <div class="dashboard-grid">
+                    <div class="card" style="border-top-color: var(--success);">
+                        <h3>Backup Database</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Export a JSON master file.</p>
+                        <button class="btn success" onclick="exportJSON()">Download Backup</button>
+                    </div>
+                    <div class="card" style="border-top-color: var(--danger);">
+                        <h3>Restore Database</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Upload JSON backup.</p>
+                        <input type="file" id="import-json-file" accept=".json" style="margin-bottom: 0.5rem; font-size:0.8rem;">
+                        <button class="btn danger" onclick="importJSON()">Restore Data</button>
+                    </div>
+                    
+                    <!-- NEW FACTORY RESET CARD -->
+                    <div class="card" style="border-top-color: var(--danger); background: rgba(239, 68, 68, 0.05);">
+                        <h3 style="color: var(--danger);">Factory Reset</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Wipe all data to start fresh.</p>
+                        <button class="btn danger" onclick="factoryReset()">⚠️ Erase Everything</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- THIS CONNECTS YOUR JAVASCRIPT FILE! -->
+    <script src="script.js"></script>
+</body>
+</html>
