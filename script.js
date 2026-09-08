@@ -1716,7 +1716,9 @@ document.getElementById('budget-expense-display').innerText = `$${totalSyncCost.
         }
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
-        function openTab(tabId) { 
+        function openTab(tabId) {
+            const navMenu = document.getElementById('app-nav-menu');
+    if (navMenu) { navMenu.style.display = 'none'; document.getElementById('menu-toggle-btn').innerText = '📂 Menu'; } 
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); 
     document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active')); 
     document.getElementById(tabId).classList.add('active'); 
@@ -2111,3 +2113,15 @@ document.getElementById('budget-expense-display').innerText = `$${totalSyncCost.
                 });
             }
         }
+
+function toggleNavMenu() {
+    const navMenu = document.getElementById('app-nav-menu');
+    const menuBtn = document.getElementById('menu-toggle-btn');
+    if (navMenu.style.display === 'grid') {
+        navMenu.style.display = 'none';
+        menuBtn.innerText = '📂 Menu';
+    } else {
+        navMenu.style.display = 'grid';
+        menuBtn.innerText = '✕ Close';
+    }
+}

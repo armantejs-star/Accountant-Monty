@@ -41,9 +41,9 @@
             <div style="display: flex; gap: 0.5rem; align-items: center; min-height: 20px;">
                 <span id="save-indicator" style="font-size: 0.8rem; color: var(--success); font-weight: bold; opacity: 0; transition: opacity 0.3s;">💾 Saved</span>
                 <span id="backup-warning" style="font-size: 0.8rem; color: var(--danger); font-weight: bold; display: none; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--danger);">⚠️ Hard Backup Required</span>
-                
                 <!-- NEW INSTALL BUTTON -->
                 <button id="install-btn" class="btn accent" style="display: none; padding: 2px 8px; width: auto; font-size: 0.8rem;">📱 Install App</button>
+                <button id="menu-toggle-btn" class="btn accent" onclick="toggleNavMenu()" style="padding: 2px 8px; width: auto; font-size: 0.8rem;">📂 Menu</button>
             </div>
         </div>
         <div class="avatar-circle" title="Accountant Monty">👳🏽‍♂️🧮</div>
@@ -54,7 +54,7 @@
         ✈️ You are offline. Monty is running securely from local cache.
     </div>
 
-    <nav aria-label="Main Navigation">
+    <nav id="app-nav-menu" aria-label="Main Navigation" style="display: none;">
         <button class="tab-link active" onclick="openTab('dashboard')">Dashboard</button>
         <button class="tab-link" onclick="openTab('budget')">Budget & Envelopes 📊</button>
         <button class="tab-link" onclick="openTab('forecast')">Cash Forecast 🔮</button>
