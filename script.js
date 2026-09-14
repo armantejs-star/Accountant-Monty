@@ -2120,14 +2120,42 @@ function forceUpdateApp() {
             }
         }
 
-function toggleNavMenu() {
-    const navMenu = document.getElementById('app-nav-menu');
-    const menuBtn = document.getElementById('menu-toggle-btn');
-    if (navMenu.style.display === 'grid') {
-        navMenu.style.display = 'none';
-        menuBtn.innerText = '📂 Menu';
-    } else {
-        navMenu.style.display = 'grid';
-        menuBtn.innerText = '✕ Close';
+/* FOTMOB BOTTOM NAVIGATION & DRAWER ENGINE */
+function toggleMoreMenu() {
+    const overlay = document.getElementById('more-menu-overlay');
+    if (overlay) {
+        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
     }
+}
+
+function openTab(tabId) {
+    // 1. Hide More Menu Overlay if open
+    const overlay = document.getElementById('more-menu-overlay');
+    if (overlay) overlay.style.display = 'none';
+
+    // 2. Hide all tab content panes
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    
+    // 3. Deactivate all bottom nav items
+    document.querySelectorAll('.b-nav-item').forEach(el => el.classList.remove('active'));
+
+    // 4. Activate target content pane
+    const targetContent = document.getElementById(tabId);
+    if (targetContent) targetContent.classList.add('active');
+
+    // 5. Highlight bottom nav tab (or fallback to 'More')
+    const activeBottomBtn = document.getElementById(`b-nav-${tabId}`);
+    if (activeBottomBtn) {
+        activeBottomBtn.classList.add('active');
+    } else {
+        document.getElementById('b-nav-more')?.classList.add('active');
+    }
+
+    // 6. Trigger chart re-renders
+    if (tabId === 'dashboard') renderCharts();
+    if (tabId === 'insights') renderInsightsCharts();
+    if (tabId === 'debt') simulateDebt();
+    if (tabId === 'forecast') renderForecastChart();
+    if (tabId === 'planner') render();
+    if (tabId === 'stocks') renderInvProjectionChart();
 }

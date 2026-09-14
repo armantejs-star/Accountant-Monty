@@ -1,81 +1,116 @@
 /* CSS VARIABLES */
+/* FOTMOB DARK COLOR PALETTE */
 :root {
-    --bg-color: #f4f5f8;        /* Warmer, softer background */
-    --panel-bg: #ffffff;        /* Pure white cards */
-    --text-main: #1c1c1e;       /* Deep grey instead of harsh black */
-    --text-muted: #8e8e93;      /* Apple-style muted grey */
-    --border: transparent;      /* Erase harsh lines */
+    --bg-color: #0d0d0f;        /* Deep matte black background */
+    --panel-bg: #18181b;        /* Dark elevated card surface */
+    --text-main: #f4f4f5;       /* Crisp white text */
+    --text-muted: #a1a1aa;      /* Muted grey text */
+    --border: #27272a;          /* Clean dark border */
     
-    /* Vibrant, Structured-style Accent Colors */
-    --accent: #ff4f79;          
-    --success: #34c759;         
-    --danger: #ff3b30;          
-    --warning: #ff9500;         
-    --secondary: #ffffff;       
-    --shadow: 0 12px 32px rgba(0, 0, 0, 0.05); /* Diffused premium shadow */
+    /* Neon Green FotMob Branding */
+    --accent: #22c55e;          
+    --success: #22c55e;         
+    --danger: #ef4444;          
+    --warning: #f59e0b;         
+    --secondary: #27272a;       
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="dark"] {
-    --bg-color: #000000;
-    --panel-bg: #1c1c1e;
-    --text-main: #f2f2f7;
-    --text-muted: #98989d;
-    --shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-    --secondary: #1c1c1e;
-}
-
-* { box-sizing: border-box; }
 body { 
-    /* Apple's premium rounded font stack */
-    font-family: ui-rounded, 'SF Pro Rounded', 'Nunito', 'Segoe UI', sans-serif; 
-    margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); 
-    display: flex; flex-direction: column; min-height: 100vh; 
-    transition: background-color 0.3s, color 0.3s; 
-}
-
-/* HEADER & AVATAR */
-header { background-color: var(--bg-color); color: var(--text-main); padding: 1.5rem 1.5rem 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border: none; }
-header h1 { margin: 0; font-size: 1.8rem; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; }
-.avatar-circle { background: var(--panel-bg); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; box-shadow: var(--shadow); }
-
-/* DROPDOWN NAVIGATION */
-nav#app-nav-menu { 
-    background: var(--panel-bg); 
-    margin: 0 1rem 1rem 1rem; 
-    padding: 1rem; 
-    border-radius: 20px; 
-    box-shadow: var(--shadow); 
-    z-index: 1000;
-    position: relative;
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-    gap: 0.6rem; 
-}
-nav#app-nav-menu button { 
-    background: var(--bg-color); 
-    border-radius: 16px; 
-    border: none; 
+    background-color: var(--bg-color); 
     color: var(--text-main); 
-    padding: 1rem; 
-    cursor: pointer; 
-    font-size: 1rem; 
-    font-weight: 700; 
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+main { 
+    padding: 1rem 1rem 100px 1rem; 
+    max-width: 800px; 
+    margin: 0 auto; 
+}
+
+/* CARDS & PANELS */
+.panel, .card { 
+    background: var(--panel-bg); 
+    border-radius: 18px; 
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow); 
+}
+
+/* INPUT CONTRAST FIX */
+input, select {
+    background: #27272a !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border) !important;
+}
+
+th, td {
+    background: #27272a !important;
+}
+
+/* FOTMOB BOTTOM NAV BAR */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #121215;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9997;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.b-nav-item {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.b-nav-icon { font-size: 1.2rem; }
+.b-nav-label { font-size: 0.72rem; font-weight: 600; }
+
+.b-nav-item.active {
+    color: var(--accent);
+    position: relative;
+}
+
+.b-nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 28px;
+    height: 3px;
+    background: var(--accent);
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.nav-drawer-btn {
+    background: var(--bg-color);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     text-align: left;
     width: 100%;
 }
-nav#app-nav-menu button:hover, nav#app-nav-menu button.active { 
-    background-color: var(--text-main); 
-    color: var(--bg-color); 
-}
-main { flex: 1; padding: 1.5rem; max-width: 1200px; width: 100%; margin: 0 auto; }
-.tab-content { display: none; animation: fadeIn 0.3s ease-out; }
-.tab-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* CARDS & PANELS */
-.panel { background: var(--panel-bg); padding: 1.8rem; border-radius: 24px; box-shadow: var(--shadow); margin-bottom: 2rem; border: none; }
-.summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
-.card { padding: 1.5rem; background: var(--panel-bg); border-radius: 24px; box-shadow: var(--shadow); border: none; position: relative; }
 /* Dot Accents instead of thick top borders */
 .card::before { content: ''; position: absolute; top: 1.5rem; right: 1.5rem; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
 .card.success::before { background: var(--success); }

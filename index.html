@@ -41,9 +41,7 @@
             <div style="display: flex; gap: 0.5rem; align-items: center; min-height: 20px;">
                 <span id="save-indicator" style="font-size: 0.8rem; color: var(--success); font-weight: bold; opacity: 0; transition: opacity 0.3s;">💾 Saved</span>
                 <span id="backup-warning" style="font-size: 0.8rem; color: var(--danger); font-weight: bold; display: none; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--danger);">⚠️ Hard Backup Required</span>
-                <!-- NEW INSTALL BUTTON -->
                 <button id="install-btn" class="btn accent" style="display: none; padding: 2px 8px; width: auto; font-size: 0.8rem;">📱 Install App</button>
-                <button id="menu-toggle-btn" class="btn accent" onclick="toggleNavMenu()" style="padding: 2px 8px; width: auto; font-size: 0.8rem;">📂 Menu</button>
             </div>
         </div>
         <div class="avatar-circle" title="Accountant Monty">👳🏽‍♂️🧮</div>
@@ -53,21 +51,6 @@
     <div id="offline-banner" style="display: none; background: var(--warning); color: #000; text-align: center; padding: 0.5rem; font-weight: bold; font-size: 0.9rem;">
         ✈️ You are offline. Monty is running securely from local cache.
     </div>
-
-    <nav id="app-nav-menu" aria-label="Main Navigation" style="display: none;">
-        <button class="tab-link active" onclick="openTab('dashboard')">Dashboard</button>
-        <button class="tab-link" onclick="openTab('budget')">Budget & Envelopes 📊</button>
-        <button class="tab-link" onclick="openTab('forecast')">Cash Forecast 🔮</button>
-        <button class="tab-link" onclick="openTab('transactions')">Ledger</button>
-        <button class="tab-link" onclick="openTab('planner')">Day Planner 📅</button>
-        <button class="tab-link" onclick="openTab('insights')">Insights</button>
-        <button class="tab-link" onclick="openTab('stocks')">Stocks 📈</button>
-        <button class="tab-link" onclick="openTab('investments')">Investments 🏦</button>
-        <button class="tab-link" onclick="openTab('debt')">Debt Payoff</button>
-        <button class="tab-link" onclick="openTab('goals')">Sinking Funds</button>
-        <button class="tab-link" onclick="openTab('groceries')">Groceries / OCR</button>
-        <button class="tab-link" onclick="openTab('settings')">Settings</button>
-    </nav>
 
     <main>
         <!-- 1. DASHBOARD -->
@@ -645,5 +628,43 @@
 
     <!-- THIS CONNECTS YOUR JAVASCRIPT FILE! -->
     <script src="script.js"></script>
+    <!-- FOTMOB SLIDE-UP MORE MENU -->
+<div id="more-menu-overlay" onclick="toggleMoreMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9998; backdrop-filter:blur(6px);">
+    <div onclick="event.stopPropagation()" style="position:fixed; bottom:64px; left:0; right:0; background:var(--panel-bg); border-top-left-radius:24px; border-top-right-radius:24px; padding:1.5rem; display:grid; grid-template-columns:repeat(2, 1fr); gap:0.75rem; z-index:9999; box-shadow:0 -10px 30px rgba(0,0,0,0.6); border-top:1px solid var(--border);">
+        <h3 style="grid-column: span 2; margin:0 0 0.5rem 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">More Tools</h3>
+        <button class="btn nav-drawer-btn" onclick="openTab('forecast')">🔮 Cash Forecast</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('transactions')">📜 Ledger</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('insights')">💡 Analytics</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('investments')">🏦 Other Assets</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('debt')">⚡ Debt Payoff</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('goals')">🎯 Sinking Funds</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('groceries')">🛒 Groceries / OCR</button>
+        <button class="btn nav-drawer-btn" onclick="openTab('settings')" style="grid-column: span 2; background:var(--bg-color);">⚙️ Settings</button>
+    </div>
+</div>
+
+<!-- FOTMOB FIXED BOTTOM NAVIGATION BAR -->
+<nav class="bottom-nav">
+    <button class="b-nav-item active" id="b-nav-dashboard" onclick="openTab('dashboard')">
+        <span class="b-nav-icon">🏠</span>
+        <span class="b-nav-label">Home</span>
+    </button>
+    <button class="b-nav-item" id="b-nav-budget" onclick="openTab('budget')">
+        <span class="b-nav-icon">📊</span>
+        <span class="b-nav-label">Budget</span>
+    </button>
+    <button class="b-nav-item" id="b-nav-stocks" onclick="openTab('stocks')">
+        <span class="b-nav-icon">📈</span>
+        <span class="b-nav-label">Portfolio</span>
+    </button>
+    <button class="b-nav-item" id="b-nav-planner" onclick="openTab('planner')">
+        <span class="b-nav-icon">📅</span>
+        <span class="b-nav-label">Planner</span>
+    </button>
+    <button class="b-nav-item" id="b-nav-more" onclick="toggleMoreMenu()">
+        <span class="b-nav-icon">☰</span>
+        <span class="b-nav-label">More</span>
+    </button>
+</nav>
 </body>
 </html>
