@@ -1716,96 +1716,41 @@ document.getElementById('budget-expense-display').innerText = `$${totalSyncCost.
         }
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
-        function openTab(tabId) {
-            const navMenu = document.getElementById('app-nav-menu');
-    if (navMenu) { navMenu.style.display = 'none'; document.getElementById('menu-toggle-btn').innerText = '📂 Menu'; } 
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); 
-    document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active')); 
-    document.getElementById(tabId).classList.add('active'); 
-    
-    // Safely check for event to prevent ReferenceErrors
-    if(typeof event !== 'undefined' && event && event.currentTarget) {
-        event.currentTarget.classList.add('active'); 
-    } else {
-        document.querySelector(`button[onclick*="openTab('${tabId}')"]`)?.classList.add('active'); 
-    }
-    
-    if(tabId === 'dashboard') renderCharts(); 
-    if(tabId === 'insights') renderInsightsCharts(); 
-    if(tabId === 'debt') simulateDebt(); 
-    if(tabId === 'forecast') renderForecastChart(); 
-    if(tabId === 'planner') render(); 
-    if(tabId === 'stocks') renderInvProjectionChart();
-}
-        function showConfirm(title, text, callback) { document.getElementById('modal-title').innerText = title; document.getElementById('modal-text').innerText = text; confirmAction = callback; document.getElementById('modal-confirm-btn').onclick = () => { if(confirmAction) confirmAction(); closeModal(); }; document.getElementById('modal-overlay').style.display = 'flex'; }
+ function showConfirm(title, text, callback) { document.getElementById('modal-title').innerText = title; document.getElementById('modal-text').innerText = text; confirmAction = callback; document.getElementById('modal-confirm-btn').onclick = () => { if(confirmAction) confirmAction(); closeModal(); }; document.getElementById('modal-overlay').style.display = 'flex'; }
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; confirmAction = null; }
         function applyTheme() { document.documentElement.setAttribute('data-theme', db.settings.theme); document.getElementById('theme-toggle-btn').innerText = db.settings.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'; }
         function toggleTheme() { db.settings.theme = db.settings.theme === 'light' ? 'dark' : 'light'; save(); applyTheme(); renderCharts(); if(document.getElementById('insights').classList.contains('active')) renderInsightsCharts(); if(document.getElementById('forecast').classList.contains('active')) renderForecastChart(); if(document.getElementById('stocks').classList.contains('active')) renderInvProjectionChart(); }
         
-/* --- STEP 33: SMART BACKUP VERSIONING --- */
+        /* --- STEP 33: SMART BACKUP VERSIONING --- */
         async function exportJSON() { 
             const jsonStr = JSON.stringify(db, null, 2);
-            
-            // Generate a professional timestamp (e.g., 2026-09-01_14-30)
             const d = new Date();
             const datePart = getLocalDateStr();
             const timePart = String(d.getHours()).padStart(2, '0') + '-' + String(d.getMinutes()).padStart(2, '0');
             const fileName = `Accountant_Monty_${datePart}_${timePart}.json`;
-            
-            // Try modern File System Access API
             if (window.showSaveFilePicker) {
                 try {
-                    // Only ask for a new file handle if we don't have one, OR if we want to force a new timestamp
-                    // Pro Mode: We force a new save window every time to ensure the new timestamp is used!
-                    fileHandle = await window.showSaveFilePicker({
-                        suggestedName: fileName,
-                        types: [{ description: 'JSON File', accept: {'application/json': ['.json']} }]
-                    });
-                    
+                    fileHandle = await window.showSaveFilePicker({ suggestedName: fileName, types: [{ description: 'JSON File', accept: {'application/json': ['.json']} }] });
                     const writable = await fileHandle.createWritable();
-                    await writable.write(jsonStr);
-                    await writable.close();
-                    
-                    unsavedChanges = false;
-                    localStorage.setItem('Monty_NeedsBackup', 'false');
-                    updateBackupUI();
-                    alert("Master backup saved securely!");
-                    return;
-                } catch (err) {
-                    console.log("File System API cancelled or failed, falling back to download.");
-                }
+                    await writable.write(jsonStr); await writable.close();
+                    unsavedChanges = false; localStorage.setItem('Monty_NeedsBackup', 'false'); updateBackupUI(); alert("Master backup saved securely!"); return;
+                } catch (err) { console.log("File System API cancelled or failed."); }
             }
-            
-            // Standard fallback download (For iOS and older browsers)
             const blob = new Blob([jsonStr], { type: 'application/json' }); 
-            const a = document.createElement('a'); 
-            a.href = URL.createObjectURL(blob); 
-            a.download = fileName; 
-            document.body.appendChild(a); // Required for Firefox
-            a.click(); 
-            document.body.removeChild(a); // Clean up the DOM
-            
-            unsavedChanges = false;
-            localStorage.setItem('Monty_NeedsBackup', 'false');
-            updateBackupUI();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName; 
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); 
+            unsavedChanges = false; localStorage.setItem('Monty_NeedsBackup', 'false'); updateBackupUI();
         }
 
- /* --- STEP 23: SECURE IMPORT REBOOT --- */
+        /* --- STEP 23: SECURE IMPORT REBOOT --- */
         function importJSON() { 
             const file = document.getElementById('import-json-file').files[0]; 
             if(!file) return alert("Select a backup file first."); 
-            
             showConfirm("Restore Backup?", "This will overwrite all current data. Are you sure?", () => { 
                 const reader = new FileReader(); 
                 reader.onload = e => { 
-                    try { 
-                        db = JSON.parse(e.target.result); 
-                        save(); // Saves the restored data to your phone
-                        alert("Data successfully restored! Monty will now reboot."); 
-                        window.location.reload(); // Forces a clean refresh to prevent visual bugs
-                    } catch(err) { 
-                        alert("Error: Invalid backup file."); 
-                    } 
+                    try { db = JSON.parse(e.target.result); save(); alert("Data successfully restored! Monty will now reboot."); window.location.reload(); } 
+                    catch(err) { alert("Error: Invalid backup file."); } 
                 }; 
                 reader.readAsText(file); 
             }); 
@@ -1823,348 +1768,75 @@ document.getElementById('budget-expense-display').innerText = `$${totalSyncCost.
             } animate(); 
         }
 
+        /* BOOTUP SEQUENCE RESTORED */
         window.onload = load;
 
-
         /* --- STEP 42: SERVICE WORKER REGISTRATION (PWA) --- */
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(err => {
-                        console.error('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-
-        /* --- STEP 43: PWA INSTALL PROMPT --- */
-        let deferredPrompt;
-        const installBtn = document.getElementById('install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show the custom install button!
-            if (installBtn) installBtn.style.display = 'inline-block';
-        });
-
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    // Show the native browser install prompt
-                    deferredPrompt.prompt();
-                    // Wait for the user to respond
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to install: ${outcome}`);
-                    // We've used the prompt, so throw it away
-                    deferredPrompt = null;
-                    // Hide the button since they either installed it or rejected it
-                    installBtn.style.display = 'none';
-                }
-            });
-        }
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').then(r => console.log('SW success')).catch(e => console.error('SW failed', e)); }); }
+        let deferredPrompt; const installBtn = document.getElementById('install-btn');
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if (installBtn) installBtn.style.display = 'inline-block'; });
+        if (installBtn) { installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; } }); }
 
         /* --- STEP 44: OFFLINE INDICATOR --- */
-        function updateOnlineStatus() {
-            const offlineBanner = document.getElementById('offline-banner');
-            if (offlineBanner) {
-                // If the browser is offline, show the banner. Otherwise, hide it.
-                offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
-            }
-        }
+        function updateOnlineStatus() { const banner = document.getElementById('offline-banner'); if (banner) banner.style.display = navigator.onLine ? 'none' : 'block'; }
+        window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
 
-        // Listen for the browser connecting or disconnecting
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
+        /* --- STEP 45: CACHE BUSTER --- */
+        function forceUpdateApp() { if ('caches' in window) { caches.keys().then(names => { names.forEach(name => caches.delete(name)); }); } if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(regs => { for(let r of regs) r.unregister(); }).then(() => { window.location.reload(true); }); } else { window.location.reload(true); } }
         
-        // Run it once when the app loads just to check the current status
-        updateOnlineStatus();
-
-/* --- STEP 45: CACHE BUSTER (FORCE UPDATE) --- */
-function forceUpdateApp() {
-    // 1. Delete the file cache
-    if ('caches' in window) {
-        caches.keys().then(names => {
-            names.forEach(name => caches.delete(name));
-        });
-    }
-    // 2. Unregister the Service Worker holding the old code
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister();
-            }
-        }).then(() => {
-            alert("App cache cleared! Monty will now download the latest version.");
-            window.location.reload(true);
-        });
-    } else {
-        window.location.reload(true);
-    }
-}
-        /* --- STEP 47: FACTORY RESET (LAUNCH PREP) --- */
-        function factoryReset() {
-            showConfirm("⚠️ COMPLETE DATA WIPE", "Are you absolutely sure? This will permanently delete all accounts, transactions, and settings. You cannot undo this.", () => {
-                // Nuke all the storage keys
-                localStorage.removeItem('AccountantMontyV6_Data');
-                localStorage.removeItem('Monty_Drafts');
-                localStorage.removeItem('Monty_NeedsBackup');
-                
-                alert("Database erased. Monty is rebooting to a clean slate.");
-                
-                // Force a hard cache reload to clear everything from memory
-                window.location.reload(true);
-            });
-        }   
+        /* --- STEP 47: FACTORY RESET --- */
+        function factoryReset() { showConfirm("⚠️ COMPLETE DATA WIPE", "Are you absolutely sure?", () => { localStorage.removeItem('AccountantMontyV6_Data'); localStorage.removeItem('Monty_Drafts'); localStorage.removeItem('Monty_NeedsBackup'); window.location.reload(true); }); }   
         
         /* --- STEP 50: WEEKLY TIMETABLE & PLANNER ENGINE --- */
-        let currentWeekOffset = 0;
-        let plannerViewMode = 'live';
+        let currentWeekOffset = 0; let plannerViewMode = 'live';
+        function togglePlannerView(mode) { plannerViewMode = mode; const liveBtn = document.getElementById('view-live-btn'); const defBtn = document.getElementById('view-default-btn'); const liveView = document.getElementById('planner-live-view'); const defView = document.getElementById('planner-default-view'); if (mode === 'live') { liveBtn.className = 'btn accent'; defBtn.className = 'btn'; liveView.style.display = 'block'; defView.style.display = 'none'; } else { liveBtn.className = 'btn'; defBtn.className = 'btn accent'; liveView.style.display = 'none'; defView.style.display = 'block'; } render(); }
+        function changeWeekOffset(dir) { currentWeekOffset += dir; render(); }
+        function addDefaultRoutine() { const day = parseInt(document.getElementById('def-day').value); const time = document.getElementById('def-time').value; const desc = document.getElementById('def-desc').value.trim(); if (!desc || !time) return; db.routine.push({ id: generateId(), day, time, desc }); document.getElementById('def-desc').value = ''; document.getElementById('def-time').value = ''; save(); }
+        function removeDefaultRoutine(id) { db.routine = db.routine.filter(r => r.id !== id); save(); }
+        function addAppointment() { const date = document.getElementById('apt-date').value; const time = document.getElementById('apt-time').value; const desc = document.getElementById('apt-desc').value.trim(); if (!date || !desc) return; db.appointments.push({ id: generateId(), date, time: time || 'All Day', desc }); document.getElementById('apt-desc').value = ''; document.getElementById('apt-time').value = ''; save(); }
+        function removeAppointment(id) { db.appointments = db.appointments.filter(a => a.id !== id); save(); }
+        function skipRoutineInstance(dateStr, routineId) { const key = `${dateStr}_${routineId}`; if (!db.plannerHidden.includes(key)) { db.plannerHidden.push(key); save(); } }
+        function restoreRoutineInstance(dateStr, routineId) { const key = `${dateStr}_${routineId}`; db.plannerHidden = db.plannerHidden.filter(k => k !== key); save(); }
+        function getDaysOfCurrentWeek() { let d = new Date(); d.setHours(0,0,0,0); let day = d.getDay(); let diff = d.getDate() - day + (day === 0 ? -6 : 1); let monday = new Date(d.setDate(diff)); monday.setDate(monday.getDate() + (currentWeekOffset * 7)); let weekDays = []; const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; for (let i = 0; i < 7; i++) { let currentD = new Date(monday); currentD.setDate(monday.getDate() + i); let year = currentD.getFullYear(); let month = String(currentD.getMonth() + 1).padStart(2, '0'); let dayNum = String(currentD.getDate()).padStart(2, '0'); let dateStr = `${year}-${month}-${dayNum}`; weekDays.push({ name: dayNames[i], dateStr: dateStr, displayDate: `${dayNum}/${month}/${year}`, dayIndex: (i + 1) % 7 }); } return weekDays; }
+        function renderPlannerModule() { const defBody = document.getElementById('default-routine-body'); if (defBody) { defBody.innerHTML = ''; if (db.routine.length === 0) { defBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No master routine items set yet.</td></tr>`; } else { const dayMap = { 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday', 0: 'Sunday' }; let sortedRoutine = [...db.routine].sort((a,b) => a.day - b.day || a.time.localeCompare(b.time)); sortedRoutine.forEach(r => { defBody.innerHTML += `<tr><td><strong>${dayMap[r.day]}</strong></td><td>${r.time}</td><td>${r.desc}</td><td><button class="btn danger" style="padding:4px 8px; width:auto;" onclick="removeDefaultRoutine('${r.id}')">X</button></td></tr>`; }); } } const liveContainer = document.getElementById('live-week-container'); const weekLabel = document.getElementById('current-week-label'); if (liveContainer && weekLabel) { liveContainer.innerHTML = ''; let weekDays = getDaysOfCurrentWeek(); if (currentWeekOffset === 0) weekLabel.innerText = "This Week"; else if (currentWeekOffset === 1) weekLabel.innerText = "Next Week"; else if (currentWeekOffset === -1) weekLabel.innerText = "Last Week"; else weekLabel.innerText = `Week of ${weekDays[0].displayDate}`; weekDays.forEach(wd => { let dayRoutines = db.routine.filter(r => r.day === wd.dayIndex); let dayApts = db.appointments.filter(a => a.date === wd.dateStr); let itemsHtml = ''; dayRoutines.forEach(r => { let isSkipped = db.plannerHidden.includes(`${wd.dateStr}_${r.id}`); itemsHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.75rem 1rem; border-radius:12px; margin-bottom:0.5rem; ${isSkipped ? 'opacity:0.4; text-decoration:line-through;' : ''}"><div><span class="badge" style="margin-right:0.5rem;">${r.time}</span><strong>${r.desc}</strong></div><div>${isSkipped ? `<button class="btn accent" style="padding:2px 8px; font-size:0.8rem;" onclick="restoreRoutineInstance('${wd.dateStr}', '${r.id}')">Restore</button>` : `<button class="btn danger" style="padding:2px 8px; font-size:0.8rem;" onclick="skipRoutineInstance('${wd.dateStr}', '${r.id}')">Skip</button>`}</div></div>`; }); dayApts.forEach(a => { itemsHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(139,92,246,0.08); padding:0.75rem 1rem; border-radius:12px; margin-bottom:0.5rem; border-left: 4px solid var(--accent);"><div><span class="badge" style="background:var(--accent); color:white; margin-right:0.5rem;">${a.time}</span><strong>${a.desc}</strong></div><div><button class="btn danger" style="padding:2px 8px; font-size:0.8rem;" onclick="removeAppointment('${a.id}')">X</button></div></div>`; }); if (!dayRoutines.length && !dayApts.length) { itemsHtml = `<p style="color:var(--text-muted); font-size:0.9rem; font-style:italic; margin:0.5rem 0;">No events scheduled.</p>`; } liveContainer.innerHTML += `<div style="background:var(--panel-bg); padding:1.2rem; border-radius:16px; box-shadow:var(--shadow); margin-bottom:1rem;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;"><h4 style="margin:0; font-size:1.05rem; color:var(--accent);">${wd.name}</h4><span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">${wd.displayDate}</span></div><div>${itemsHtml}</div></div>`; }); } }
 
-        function togglePlannerView(mode) {
-            plannerViewMode = mode;
-            const liveBtn = document.getElementById('view-live-btn');
-            const defBtn = document.getElementById('view-default-btn');
-            const liveView = document.getElementById('planner-live-view');
-            const defView = document.getElementById('planner-default-view');
-
-            if (mode === 'live') {
-                liveBtn.className = 'btn accent';
-                defBtn.className = 'btn';
-                liveView.style.display = 'block';
-                defView.style.display = 'none';
-            } else {
-                liveBtn.className = 'btn';
-                defBtn.className = 'btn accent';
-                liveView.style.display = 'none';
-                defView.style.display = 'block';
-            }
-            render();
-        }
-
-        function changeWeekOffset(dir) {
-            currentWeekOffset += dir;
-            render();
-        }
-
-        function addDefaultRoutine() {
-            const day = parseInt(document.getElementById('def-day').value);
-            const time = document.getElementById('def-time').value;
-            const desc = document.getElementById('def-desc').value.trim();
-
-            if (!desc || !time) return alert("Please enter both a time and a routine description.");
-
-            db.routine.push({ id: generateId(), day, time, desc });
-            document.getElementById('def-desc').value = '';
-            document.getElementById('def-time').value = '';
-            save();
-        }
-
-        function removeDefaultRoutine(id) {
-            db.routine = db.routine.filter(r => r.id !== id);
-            save();
-        }
-
-        function addAppointment() {
-            const date = document.getElementById('apt-date').value;
-            const time = document.getElementById('apt-time').value;
-            const desc = document.getElementById('apt-desc').value.trim();
-
-            if (!date || !desc) return alert("Please select a date and description for the appointment.");
-
-            db.appointments.push({ id: generateId(), date, time: time || 'All Day', desc });
-            document.getElementById('apt-desc').value = '';
-            document.getElementById('apt-time').value = '';
-            save();
-        }
-
-        function removeAppointment(id) {
-            db.appointments = db.appointments.filter(a => a.id !== id);
-            save();
-        }
-
-        function skipRoutineInstance(dateStr, routineId) {
-            const key = `${dateStr}_${routineId}`;
-            if (!db.plannerHidden.includes(key)) {
-                db.plannerHidden.push(key);
-                save();
-            }
-        }
-
-        function restoreRoutineInstance(dateStr, routineId) {
-            const key = `${dateStr}_${routineId}`;
-            db.plannerHidden = db.plannerHidden.filter(k => k !== key);
-            save();
-        }
-
-        // Helper to get Monday-Sunday dates for the currently selected week offset
-        function getDaysOfCurrentWeek() {
-            let d = new Date();
-            d.setHours(0,0,0,0);
-            // Adjust to Monday of this week
-            let day = d.getDay();
-            let diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            let monday = new Date(d.setDate(diff));
-            
-            // Apply offset weeks
-            monday.setDate(monday.getDate() + (currentWeekOffset * 7));
-
-            let weekDays = [];
-            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            
-            for (let i = 0; i < 7; i++) {
-                let currentD = new Date(monday);
-                currentD.setDate(monday.getDate() + i);
-                let year = currentD.getFullYear();
-                let month = String(currentD.getMonth() + 1).padStart(2, '0');
-                let dayNum = String(currentD.getDate()).padStart(2, '0');
-                let dateStr = `${year}-${month}-${dayNum}`;
-                
-                weekDays.push({
-                    name: dayNames[i],
-                    dateStr: dateStr,
-                    displayDate: `${dayNum}/${month}/${year}`,
-                    dayIndex: (i + 1) % 7 // Maps Monday=1 ... Sunday=0 matching JS getDay()
-                });
-            }
-            return weekDays;
-        }
-
-        function renderPlannerModule() {
-            // 1. Render Base Template View
-            const defBody = document.getElementById('default-routine-body');
-            if (defBody) {
-                defBody.innerHTML = '';
-                if (db.routine.length === 0) {
-                    defBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1.5rem;">No master routine items set yet.</td></tr>`;
-                } else {
-                    const dayMap = { 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday', 0: 'Sunday' };
-                    let sortedRoutine = [...db.routine].sort((a,b) => a.day - b.day || a.time.localeCompare(b.time));
-                    sortedRoutine.forEach(r => {
-                        defBody.innerHTML += `<tr>
-                            <td><strong>${dayMap[r.day]}</strong></td>
-                            <td>${r.time}</td>
-                            <td>${r.desc}</td>
-                            <td><button class="btn danger" style="padding:4px 8px; width:auto;" onclick="removeDefaultRoutine('${r.id}')">X</button></td>
-                        </tr>`;
-                    });
+        /* --- NAVIGATION ROUTER --- */
+        function toggleMoreMenu() {
+            const overlay = document.getElementById('more-menu-overlay');
+            if (!overlay) return;
+            if (overlay.style.display === 'block') {
+                overlay.style.display = 'none';
+                const activeTabId = document.querySelector('.tab-content.active')?.id;
+                if (activeTabId) {
+                    document.getElementById('nav-more')?.classList.remove('active');
+                    document.getElementById(`nav-${activeTabId}`)?.classList.add('active');
                 }
-            }
-
-            // 2. Render Live Week View
-            const liveContainer = document.getElementById('live-week-container');
-            const weekLabel = document.getElementById('current-week-label');
-            if (liveContainer && weekLabel) {
-                liveContainer.innerHTML = '';
-                let weekDays = getDaysOfCurrentWeek();
-                
-                if (currentWeekOffset === 0) weekLabel.innerText = "This Week";
-                else if (currentWeekOffset === 1) weekLabel.innerText = "Next Week";
-                else if (currentWeekOffset === -1) weekLabel.innerText = "Last Week";
-                else weekLabel.innerText = `Week of ${weekDays[0].displayDate}`;
-
-                weekDays.forEach(wd => {
-                    // Find standard routines for this day of the week
-                    let dayRoutines = db.routine.filter(r => r.day === wd.dayIndex);
-                    // Find one-off appointments for this exact date
-                    let dayApts = db.appointments.filter(a => a.date === wd.dateStr);
-
-                    let itemsHtml = '';
-
-                    // Render Routine Items
-                    dayRoutines.forEach(r => {
-                        let isSkipped = db.plannerHidden.includes(`${wd.dateStr}_${r.id}`);
-                        itemsHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); padding:0.75rem 1rem; border-radius:12px; margin-bottom:0.5rem; ${isSkipped ? 'opacity:0.4; text-decoration:line-through;' : ''}">
-                            <div>
-                                <span class="badge" style="margin-right:0.5rem;">${r.time}</span>
-                                <strong>${r.desc}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(Base Routine)</span>
-                            </div>
-                            <div>
-                                ${isSkipped ? 
-                                    `<button class="btn accent" style="padding:2px 8px; font-size:0.8rem;" onclick="restoreRoutineInstance('${wd.dateStr}', '${r.id}')">Restore</button>` : 
-                                    `<button class="btn danger" style="padding:2px 8px; font-size:0.8rem;" onclick="skipRoutineInstance('${wd.dateStr}', '${r.id}')">Skip this week</button>`
-                                }
-                            </div>
-                        </div>`;
-                    });
-
-                    // Render One-off Appointments
-                    dayApts.forEach(a => {
-                        itemsHtml += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(139,92,246,0.08); padding:0.75rem 1rem; border-radius:12px; margin-bottom:0.5rem; border-left: 4px solid var(--accent);">
-                            <div>
-                                <span class="badge" style="background:var(--accent); color:white; margin-right:0.5rem;">${a.time}</span>
-                                <strong>${a.desc}</strong> <span style="font-size:0.75rem; color:var(--accent); font-weight:bold;">(Appointment)</span>
-                            </div>
-                            <div>
-                                <button class="btn danger" style="padding:2px 8px; font-size:0.8rem;" onclick="removeAppointment('${a.id}')">X</button>
-                            </div>
-                        </div>`;
-                    });
-
-                    if (!dayRoutines.length && !dayApts.length) {
-                        itemsHtml = `<p style="color:var(--text-muted); font-size:0.9rem; font-style:italic; margin:0.5Rem 0;">No events scheduled.</p>`;
-                    }
-
-                    liveContainer.innerHTML += `<div style="background:var(--panel-bg); padding:1.2rem; border-radius:16px; box-shadow:var(--shadow);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">
-                            <h4 style="margin:0; font-size:1.05rem; color:var(--accent);">${wd.name}</h4>
-                            <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">${wd.displayDate}</span>
-                        </div>
-                        <div>${itemsHtml}</div>
-                    </div>`;
-                });
+            } else {
+                overlay.style.display = 'block';
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.getElementById('nav-more').classList.add('active');
             }
         }
-
-/* FOTMOB BOTTOM NAVIGATION & DRAWER ENGINE */
-function toggleMoreMenu() {
-    const overlay = document.getElementById('more-menu-overlay');
-    if (overlay) {
-        const isOpening = overlay.style.display !== 'block';
-        overlay.style.display = isOpening ? 'block' : 'none';
         
-        // Handle visual highlighting
-        if (isOpening) {
-            document.querySelectorAll('.b-nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('b-nav-more').classList.add('active');
-        } else {
-            // Restore highlight to the currently active page if menu is closed without clicking anything
-            const activeTabId = document.querySelector('.tab-content.active')?.id;
-            if (activeTabId) {
-                document.getElementById('b-nav-more').classList.remove('active');
-                document.getElementById(`b-nav-${activeTabId}`)?.classList.add('active');
-            }
+        function openTab(tabId) {
+            const overlay = document.getElementById('more-menu-overlay');
+            if (overlay) overlay.style.display = 'none';
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) targetContent.classList.add('active');
+            
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) { activeBtn.classList.add('active'); } 
+            else { document.getElementById('nav-more')?.classList.add('active'); }
+            
+            if (tabId === 'dashboard') renderCharts();
+            if (tabId === 'insights') renderInsightsCharts();
+            if (tabId === 'debt') simulateDebt();
+            if (tabId === 'forecast') renderForecastChart();
+            if (tabId === 'planner') render();
+            if (tabId === 'stocks') renderInvProjectionChart();
+            
+            document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' });
         }
-    }
-}
-
-function openTab(tabId) {
-    const overlay = document.getElementById('more-menu-overlay');
-    if (overlay) overlay.style.display = 'none';
-
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.b-nav-item').forEach(el => el.classList.remove('active'));
-
-    const targetContent = document.getElementById(tabId);
-    if (targetContent) targetContent.classList.add('active');
-
-    const activeBottomBtn = document.getElementById(`b-nav-${tabId}`);
-    if (activeBottomBtn) {
-        activeBottomBtn.classList.add('active');
-    } else {
-        document.getElementById('b-nav-more')?.classList.add('active');
-    }
-
-    if (tabId === 'dashboard') renderCharts();
-    if (tabId === 'insights') renderInsightsCharts();
-    if (tabId === 'debt') simulateDebt();
-    if (tabId === 'forecast') renderForecastChart();
-    if (tabId === 'planner') render();
-    if (tabId === 'stocks') renderInvProjectionChart();
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}

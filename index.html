@@ -20,7 +20,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<div id="app-layout">
+    <nav class="master-nav">
+        <button class="nav-item active" id="nav-dashboard" onclick="openTab('dashboard')"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></button>
+        <button class="nav-item" id="nav-budget" onclick="openTab('budget')"><span class="nav-icon">💰</span><span class="nav-label">Budget</span></button>
+        <button class="nav-item" id="nav-planner" onclick="openTab('planner')"><span class="nav-icon">📅</span><span class="nav-label">Planner</span></button>
+        <button class="nav-item" id="nav-stocks" onclick="openTab('stocks')"><span class="nav-icon">📈</span><span class="nav-label">Assets</span></button>
+        <button class="nav-item" id="nav-more" onclick="toggleMoreMenu()"><span class="nav-icon">≡</span><span class="nav-label">More</span></button>
+    </nav>
+    <main id="main-content">
     <!-- PASTE ALL YOUR BUTTONS, MENUS, AND TABS HERE -->
     <canvas id="confetti-canvas"></canvas>
 
@@ -624,48 +632,8 @@
 
             </div>
         </div>
-    </main>
-
-    <!-- THIS CONNECTS YOUR JAVASCRIPT FILE! -->
-    <script src="script.js"></script>
-    <!-- FOTMOB SLIDE-UP MORE MENU -->
-<div id="more-menu-overlay" onclick="toggleMoreMenu()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9998; backdrop-filter:blur(6px);">
-    <div onclick="event.stopPropagation()" style="position:fixed; bottom:64px; left:0; right:0; background:var(--panel-bg); border-top-left-radius:24px; border-top-right-radius:24px; padding:1.5rem; display:grid; grid-template-columns:repeat(2, 1fr); gap:0.75rem; z-index:9999; box-shadow:0 -10px 30px rgba(0,0,0,0.6); border-top:1px solid var(--border);">
-        <h3 style="grid-column: span 2; margin:0 0 0.5rem 0; color:var(--text-muted); font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">More Tools</h3>
-        <button class="btn nav-drawer-btn" onclick="openTab('forecast')">🔮 Cash Forecast</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('transactions')">📜 Ledger</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('insights')">💡 Analytics</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('investments')">🏦 Other Assets</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('debt')">⚡ Debt Payoff</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('goals')">🎯 Sinking Funds</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('groceries')">🛒 Groceries / OCR</button>
-        <button class="btn nav-drawer-btn" onclick="openTab('settings')" style="grid-column: span 2; background:var(--bg-color);">⚙️ Settings</button>
-    </div>
+</main>
 </div>
-
-<!-- Responsive Navigation -->
-<nav class="bottom-nav">
-    <button class="b-nav-item active" id="b-nav-dashboard" onclick="openTab('dashboard')">
-        <span class="b-nav-icon">📊</span>
-        <span class="b-nav-label">Dashboard</span>
-    </button>
-    <button class="b-nav-item" id="b-nav-budget" onclick="openTab('budget')">
-        <span class="b-nav-icon">💰</span>
-        <span class="b-nav-label">Budget</span>
-    </button>
-    <button class="b-nav-item" id="b-nav-planner" onclick="openTab('planner')">
-        <span class="b-nav-icon">📅</span>
-        <span class="b-nav-label">Planner</span>
-    </button>
-    <button class="b-nav-item" id="b-nav-stocks" onclick="openTab('stocks')">
-        <span class="b-nav-icon">📈</span>
-        <span class="b-nav-label">Assets</span>
-    </button>
-    <button class="b-nav-item" id="b-nav-more" onclick="toggleMoreMenu()">
-        <span class="b-nav-icon">≡</span>
-        <span class="b-nav-label">More</span>
-    </button>
-</nav>
 
 <!-- The FotMob Style Drawer Overlay -->
 <div id="more-menu-overlay" class="more-menu-overlay" onclick="if(event.target===this) toggleMoreMenu()">
@@ -683,5 +651,7 @@
         </div>
     </div>
 </div>
+
+<script src="script.js"></script>
 </body>
 </html>
