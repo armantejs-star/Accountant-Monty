@@ -643,28 +643,45 @@
     </div>
 </div>
 
-<!-- FOTMOB FIXED BOTTOM NAVIGATION BAR -->
+<!-- Responsive Navigation -->
 <nav class="bottom-nav">
     <button class="b-nav-item active" id="b-nav-dashboard" onclick="openTab('dashboard')">
-        <span class="b-nav-icon">🏠</span>
-        <span class="b-nav-label">Home</span>
+        <span class="b-nav-icon">📊</span>
+        <span class="b-nav-label">Dashboard</span>
     </button>
     <button class="b-nav-item" id="b-nav-budget" onclick="openTab('budget')">
-        <span class="b-nav-icon">📊</span>
+        <span class="b-nav-icon">💰</span>
         <span class="b-nav-label">Budget</span>
-    </button>
-    <button class="b-nav-item" id="b-nav-stocks" onclick="openTab('stocks')">
-        <span class="b-nav-icon">📈</span>
-        <span class="b-nav-label">Portfolio</span>
     </button>
     <button class="b-nav-item" id="b-nav-planner" onclick="openTab('planner')">
         <span class="b-nav-icon">📅</span>
         <span class="b-nav-label">Planner</span>
     </button>
+    <button class="b-nav-item" id="b-nav-stocks" onclick="openTab('stocks')">
+        <span class="b-nav-icon">📈</span>
+        <span class="b-nav-label">Assets</span>
+    </button>
     <button class="b-nav-item" id="b-nav-more" onclick="toggleMoreMenu()">
-        <span class="b-nav-icon">☰</span>
+        <span class="b-nav-icon">≡</span>
         <span class="b-nav-label">More</span>
     </button>
 </nav>
+
+<!-- The FotMob Style Drawer Overlay -->
+<div id="more-menu-overlay" class="more-menu-overlay" onclick="if(event.target===this) toggleMoreMenu()">
+    <div class="more-menu-sheet">
+        <div class="sheet-header">
+            <h3>More Options</h3>
+            <button class="close-sheet-btn" onclick="toggleMoreMenu()">✕</button>
+        </div>
+        <div class="sheet-content">
+            <button class="nav-drawer-btn" onclick="openTab('insights')">🔍 Insights & Trends</button>
+            <button class="nav-drawer-btn" onclick="openTab('forecast')">🔮 Liquidity Forecast</button>
+            <button class="nav-drawer-btn" onclick="openTab('debt')">💳 Debt Destroyer</button>
+            <button class="nav-drawer-btn" onclick="openTab('catalog')">🛒 Grocery Engine</button>
+            <button class="nav-drawer-btn" onclick="openTab('settings')">⚙️ Settings</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

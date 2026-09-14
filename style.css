@@ -1,42 +1,23 @@
 /* CSS VARIABLES */
-/* FOTMOB DARK COLOR PALETTE */
+/* FOTMOB EXACT THEME & VARIABLES */
 :root {
-    --bg-color: #0d0d0f;        /* Deep matte black background */
-    --panel-bg: #18181b;        /* Dark elevated card surface */
-    --text-main: #f4f4f5;       /* Crisp white text */
-    --text-muted: #a1a1aa;      /* Muted grey text */
-    --border: #27272a;          /* Clean dark border */
-    
-    /* Neon Green FotMob Branding */
-    --accent: #22c55e;          
-    --success: #22c55e;         
-    --danger: #ef4444;          
-    --warning: #f59e0b;         
-    --secondary: #27272a;       
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --bg-color: #000000;        /* FotMob True Black */
+    --panel-bg: #1c1c1e;        /* FotMob Dark Matte Cards */
+    --text-main: #ffffff;
+    --text-muted: #a1a1aa;
+    --border: #2d2d2f;
+    --accent: #00cc55;          /* FotMob Vibrant Green */
+    --success: #00cc55;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-body { 
-    background-color: var(--bg-color); 
-    color: var(--text-main); 
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    padding: 0;
-}
+body { background-color: var(--bg-color); color: var(--text-main); }
 
-main { 
-    padding: 1rem 1rem 100px 1rem; 
-    max-width: 800px; 
-    margin: 0 auto; 
-}
-
-/* CARDS & PANELS */
-.panel, .card { 
-    background: var(--panel-bg); 
-    border-radius: 18px; 
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow); 
-}
+/* Smooth Desktop Transition */
+main { padding: 1rem 1rem 100px 1rem; max-width: 800px; margin: 0 auto; transition: margin-left 0.3s; }
+.panel, .card { background: var(--panel-bg); border-radius: 16px; border: none; }
 
 /* INPUT CONTRAST FIX */
 input, select {
@@ -49,66 +30,66 @@ th, td {
     background: #27272a !important;
 }
 
-/* FOTMOB BOTTOM NAV BAR */
+/* -----------------------------------
+   RESPONSIVE NAVIGATION
+-------------------------------------- */
 .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 64px;
-    background: #121215;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 9997;
+    position: fixed; bottom: 0; left: 0; right: 0; height: 72px;
+    background: #121212; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around; align-items: center; z-index: 9997;
     padding-bottom: env(safe-area-inset-bottom);
 }
 
 .b-nav-item {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    flex: 1;
-    height: 100%;
-    cursor: pointer;
-    transition: color 0.2s;
+    background: transparent; border: none; color: var(--text-muted);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; flex: 1; height: 100%; cursor: pointer; transition: color 0.2s;
 }
 
-.b-nav-icon { font-size: 1.2rem; }
+.b-nav-icon { font-size: 1.4rem; transition: transform 0.2s; }
 .b-nav-label { font-size: 0.72rem; font-weight: 600; }
 
-.b-nav-item.active {
-    color: var(--accent);
-    position: relative;
+.b-nav-item.active { color: var(--accent); }
+.b-nav-item.active .b-nav-icon { transform: scale(1.15); }
+
+/* PC / TABLET LAYOUT: Swaps bottom nav to a left-side rail */
+@media (min-width: 768px) {
+    .bottom-nav {
+        top: 0; bottom: 0; left: 0; right: auto; width: 100px; height: 100vh;
+        flex-direction: column; justify-content: flex-start; padding-top: 2.5rem;
+        border-top: none; border-right: 1px solid var(--border); gap: 1.5rem;
+    }
+    .b-nav-item { flex: none; height: 80px; width: 100%; }
+    .b-nav-icon { font-size: 1.6rem; }
+    .b-nav-label { font-size: 0.8rem; margin-top: 4px; }
+    main { margin-left: 100px; padding: 2rem; max-width: 1000px; }
 }
 
-.b-nav-item.active::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: 28px;
-    height: 3px;
-    background: var(--accent);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
+/* -----------------------------------
+   MORE MENU DRAWER (FOTMOB STYLE)
+-------------------------------------- */
+.more-menu-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+.more-menu-sheet { 
+    position: absolute; bottom: 0; left: 0; right: 0; background: #1c1c1e; 
+    border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 1.5rem 1.5rem 3rem 1.5rem; 
+    transform: translateY(100%); animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
 }
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.sheet-header h3 { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+.close-sheet-btn { background: #2d2d2f; color: var(--text-main); border: none; border-radius: 50%; width: 34px; height: 34px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sheet-content { display: flex; flex-direction: column; gap: 0.6rem; }
+.nav-drawer-btn { background: #121212; color: var(--text-main); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; font-size: 0.95rem; font-weight: 600; text-align: left; cursor: pointer; transition: background 0.1s; }
+.nav-drawer-btn:active, .nav-drawer-btn:hover { background: #2d2d2f; }
 
-.nav-drawer-btn {
-    background: var(--bg-color);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 0.85rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-align: left;
-    width: 100%;
+@keyframes slideUp { to { transform: translateY(0); } }
+
+/* PC Modal Adjustment for the Drawer */
+@media (min-width: 768px) {
+    .more-menu-sheet { 
+        top: 50%; left: 50%; bottom: auto; right: auto; width: 400px; padding: 2rem;
+        transform: translate(-50%, -50%) scale(0.95); border-radius: 24px; animation: popIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+    }
+    @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
 }
 
 /* Dot Accents instead of thick top borders */
