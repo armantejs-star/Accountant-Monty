@@ -1,3 +1,53 @@
+// ==========================================
+// 🔒 SECURITY: DEAD MAN'S SWITCH (14-DAY LIMIT)
+// ==========================================
+function checkOfflineLicense() {
+    const MAX_OFFLINE_DAYS = 0; // Change this number to whatever you want
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    const now = new Date().getTime();
+
+    // 1. If connected to the internet, update the "last seen" timestamp
+    if (navigator.onLine) {
+        localStorage.setItem('monty_last_online', now);
+    }
+
+    // 2. Fetch the timestamp. (If it's their first time opening the app, set it to now)
+    let lastOnline = localStorage.getItem('monty_last_online');
+    if (!lastOnline) {
+        lastOnline = now;
+        localStorage.setItem('monty_last_online', now);
+    }
+
+    // 3. Calculate how many days have passed since they were last online
+    const daysOffline = (now - parseInt(lastOnline)) / MS_PER_DAY;
+
+    // 4. THE KILL SWITCH: If the limit is exceeded, destroy the app interface
+    if (daysOffline > MAX_OFFLINE_DAYS) {
+        document.body.innerHTML = `
+            <div style="display: flex; flex-direction: column; height: 100dvh; justify-content: center; align-items: center; background: #0f172a; color: #fff; text-align: center; padding: 2rem; font-family: sans-serif;">
+                <h1 style="font-size: 4rem; margin-bottom: 0;">🔒</h1>
+                <h2 style="color: #ef4444; margin-top: 10px;">Access Expired</h2>
+                <p style="color: #94a3b8; line-height: 1.5; max-width: 300px;">
+                    Monty has been offline for over ${MAX_OFFLINE_DAYS} days.<br><br>
+                    Please connect to the internet to verify your license. The app will automatically unlock when a connection is detected.
+                </p>
+            </div>
+        `;
+    }
+}
+
+// Run the check instantly when the app loads
+checkOfflineLicense();
+
+// Listen for network changes so the app can lock/unlock itself in real-time
+window.addEventListener('offline', checkOfflineLicense);
+window.addEventListener('online', () => {
+    // If they reconnect, update the timestamp and refresh the page to give them access back
+    localStorage.setItem('monty_last_online', new Date().getTime());
+    location.reload(); 
+});
+// ==========================================
+
 let db = {
             accounts: [], transactions: [], budgetItems: [], categories: [{ id: 'c1', name: 'General' }], 
             debts: [], catalog: [], activeList: [], goals: [], stocks: [], investments: [], tasks: [], incomes: [], scenarios: [],
