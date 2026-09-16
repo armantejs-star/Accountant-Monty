@@ -43,17 +43,16 @@
         </div>
     </div>
 
-<header>
-        <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-            <h1>Accountant Monty</h1>
-            <div style="display: flex; gap: 0.5rem; align-items: center; min-height: 20px;">
-                <span id="save-indicator" style="font-size: 0.8rem; color: var(--success); font-weight: bold; opacity: 0; transition: opacity 0.3s;">💾 Saved</span>
-                <span id="backup-warning" style="font-size: 0.8rem; color: var(--danger); font-weight: bold; display: none; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--danger);">⚠️ Hard Backup Required</span>
-                <button id="install-btn" class="btn accent" style="display: none; padding: 2px 8px; width: auto; font-size: 0.8rem;">📱 Install App</button>
-            </div>
+<header class="app-header">
+    <div style="display: flex; flex-direction: column; gap: 0.2rem; position: relative; z-index: 2;">
+        <h1 style="margin: 0; font-size: 1.8rem; letter-spacing: -0.5px;">Accountant Monty</h1>
+        <div style="display: flex; gap: 0.5rem; align-items: center; min-height: 20px;">
+            <span id="save-indicator" style="font-size: 0.8rem; color: var(--success); font-weight: bold; opacity: 0; transition: opacity 0.3s;">💾 Saved</span>
+            <span id="backup-warning" style="font-size: 0.8rem; color: var(--danger); font-weight: bold; display: none; background: rgba(239, 68, 68, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--danger);">⚠️ Hard Backup Required</span>
+            <button id="install-btn" class="btn accent" style="display: none; padding: 2px 8px; width: auto; font-size: 0.8rem;">📱 Install App</button>
         </div>
-        <div class="avatar-circle" title="Accountant Monty">👳🏽‍♂️🧮</div>
-    </header>
+    </div>
+</header>
 
 <!-- OFFLINE BANNER -->
     <div id="offline-banner" style="display: none; background: var(--warning); color: #000; text-align: center; padding: 0.5rem; font-weight: bold; font-size: 0.9rem;">
@@ -581,7 +580,42 @@
                 </div>
             </div>
         </div>
+<!-- 10.5 USER GUIDE & HELP -->
+        <div id="help" class="tab-content">
+            <div class="panel">
+                <h2 style="margin-top:0;">📖 How to Use Monty</h2>
+                <p style="color:var(--text-muted); margin-top:-10px;">Your complete guide to mastering the financial engine.</p>
+                
+                <div style="margin-top: 2rem;">
+                    <h3 style="color: var(--accent);">📊 Dashboard & Accounts</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">This is your command center. Add your real-world bank accounts here. The top cards summarize your total liquidity, debts, and overall Net Worth. Use the <strong>Transfer Funds</strong> tool to move money between accounts without altering your income/expense reports.</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
 
+                    <h3 style="color: var(--accent);">💰 Budget Planner</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">Input your expected income and fixed costs (subscriptions, rent). Monty automatically calculates the "Target Equivalent" to show exactly how much you should set aside per paycheck to cover bills of different frequencies (e.g., saving a fraction of an annual bill every week).</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+                    <h3 style="color: var(--accent);">📜 Ledger (Transactions)</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">Log every dollar you spend or earn here. Transactions logged here directly update your Bank Account balances on the Dashboard. <strong>Travel Mode:</strong> Enable this to log a purchase in a foreign currency; Monty will automatically convert it using your entered exchange rate.</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+                    
+                    <h3 style="color: var(--accent);">🔮 Liquidity Forecast</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">Projects your cash flow 6 months into the future. Add "What-If" scenarios (like buying a car or getting a raise) and toggle them on/off to instantly see how they alter your long-term financial trajectory.</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+                    <h3 style="color: var(--accent);">📈 Assets & Investments</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;"><strong>Portfolio:</strong> Track stocks/crypto by logging individual purchase "lots". Update the live market price to see your all-time growth. <br><strong>Other Assets:</strong> Track flat-value assets like Real Estate or Superannuation that don't fluctuate daily.</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+                    <h3 style="color: var(--accent);">💳 Smart Debt Payoff</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">Enter your loans and interest rates. The simulator shows you how much time and money you save by switching between the <strong>Avalanche</strong> (highest interest first) or <strong>Snowball</strong> (lowest balance first) methods with extra monthly payments.</p>
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+                    <h3 style="color: var(--accent);">🛒 Groceries & OCR</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.5;">Build a database of common items to track inflation at your local stores. Use the <strong>Scan Receipt</strong> tool to upload a photo of your receipt; Monty will use AI to read the text and attempt to extract line-item prices automatically.</p>
+                </div>
+            </div>
+        </div>
 <!-- 11. SETTINGS -->
         <div id="settings" class="tab-content">
             <div class="panel">
@@ -650,6 +684,7 @@
             <button class="nav-drawer-btn" onclick="openTab('debt')">💳 Debt Payoff</button>
             <button class="nav-drawer-btn" onclick="openTab('goals')">🎯 Sinking Funds</button>
             <button class="nav-drawer-btn" onclick="openTab('groceries')">🛒 Groceries / OCR</button>
+            <button class="nav-drawer-btn" onclick="openTab('help')">📖 User Guide</button>
             <button class="nav-drawer-btn" onclick="openTab('settings')">⚙️ Settings</button>
         </div>
     </div>
