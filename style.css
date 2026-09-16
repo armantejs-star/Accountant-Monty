@@ -51,7 +51,6 @@ body {
 
 #main-content {
     flex: 1;
-    height: 100vh; /* This forces the window to scroll on PC */
     overflow-y: auto;
     padding: 1rem 1rem 2rem 1rem;
     max-width: 800px;
